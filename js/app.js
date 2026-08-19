@@ -2,6 +2,7 @@ import { supabase, isConfigured } from "./supabaseClient.js";
 import { renderAuthScreen, signOut } from "./auth.js";
 import { renderPlansView, renderBlocksView, renderDaysView, renderExercisesEditView } from "./plan.js";
 import { renderLogView } from "./workout.js";
+import { renderHomeView } from "./dashboard.js";
 
 const appRoot = document.getElementById("app");
 
@@ -10,6 +11,7 @@ let currentUser = null;
 
 const registry = {
   auth: (root, params) => renderAuthScreen(root, helpers, params?.mode || "login"),
+  home: (root, params) => renderHomeView(root, params, helpers),
   plans: (root, params) => renderPlansView(root, params, helpers),
   blocks: (root, params) => renderBlocksView(root, params, helpers),
   days: (root, params) => renderDaysView(root, params, helpers),
@@ -30,7 +32,7 @@ const helpers = {
     }
   },
   home() {
-    viewStack = [{ name: "plans" }];
+    viewStack = [{ name: "home" }];
     render();
   },
   toast(msg) {
@@ -75,7 +77,7 @@ observer.observe(appRoot, { childList: true, subtree: false });
 async function initAfterAuth() {
   const { data } = await supabase.auth.getUser();
   currentUser = data.user;
-  viewStack = [{ name: "plans" }];
+  viewStack = [{ name: "home" }];
   render();
 }
 
@@ -125,7 +127,7 @@ async function boot() {
     }
   });
 
-  viewStack = currentUser ? [{ name: "plans" }] : [{ name: "auth", params: { mode: "login" } }];
+  viewStack = currentUser ? [{ name: "home" }] : [{ name: "auth", params: { mode: "login" } }];
   render();
 
   if ("serviceWorker" in navigator) {

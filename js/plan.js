@@ -1,4 +1,5 @@
 import { topBar, loadingSpinner, emptyState, escapeHtml, showErrorToast } from "./ui.js";
+import { setActivePlan } from "./data.js";
 
 const MAX_TRAINING_DAYS = 7;
 
@@ -6,7 +7,7 @@ const MAX_TRAINING_DAYS = 7;
 // PLÄNE
 // ============================================================================
 export async function renderPlansView(root, params, helpers) {
-  root.innerHTML = topBar("Meine Trainingspläne", "", { showLogout: true }) + loadingSpinner();
+  root.innerHTML = topBar("Meine Trainingspläne", "", { showBack: true, showLogout: true }) + loadingSpinner();
 
   const { supabase } = helpers;
   const { data: plans, error } = await supabase
@@ -27,10 +28,11 @@ function drawPlans(root, plans, helpers) {
         .map(
           (p, i) => `
       <div class="list-item">
+        <button class="icon-btn" data-activate="${p.id}" title="${p.is_active ? "Aktiver Plan" : "Als aktiv setzen"}" style="color:${p.is_active ? "var(--accent-light)" : "var(--text-muted)"};">${p.is_active ? "★" : "☆"}</button>
         <div class="grow card-tap" data-open="${p.id}" style="cursor:pointer;">
           <div>
             <div class="card-title">${escapeHtml(p.name)}</div>
-            <div class="card-meta">Trainingsblöcke ansehen</div>
+            <div class="card-meta">${p.is_active ? "Aktiv · " : ""}Trainingsblöcke ansehen</div>
           </div>
           <div class="chevron">›</div>
         </div>
@@ -46,10 +48,20 @@ function drawPlans(root, plans, helpers) {
     : emptyState("📋", "Noch kein Trainingsplan angelegt. Leg deinen ersten Plan an!");
 
   root.innerHTML =
-    topBar("Meine Trainingspläne", "", { showLogout: true }) +
+    topBar("Meine Trainingspläne", "", { showBack: true, showLogout: true }) +
     `<div id="plans-list">${listHtml}</div>
      <div class="spacer"></div>
      <button class="btn btn-primary" id="add-plan">+ Neuer Trainingsplan</button>`;
+
+  root.querySelectorAll("[data-activate]").forEach((el) =>
+    el.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const { error } = await setActivePlan(supabase, el.dataset.activate);
+      if (error) return showErrorToast(helpers, error);
+      helpers.toast("Als aktiver Plan gesetzt");
+      renderPlansView(root, {}, helpers);
+    })
+  );
 
   root.querySelectorAll("[data-open]").forEach((el) =>
     el.addEventListener("click", () => {
@@ -88,7 +100,14 @@ function drawPlans(root, plans, helpers) {
   document.getElementById("add-plan").addEventListener("click", async () => {
     const name = prompt("Name des neuen Trainingsplans:", "Mein Trainingsplan");
     if (!name || !name.trim()) return;
-    const { error } = await supabase.from("plans").insert({ name: name.trim(), order_index: plans.length });
+    const makeActive = plans.length === 0 || confirm("Diesen neuen Plan direkt als aktiven Plan auf der Startseite setzen?");
+    if (makeActive) {
+      const { error: e1 } = await supabase.from("plans").update({ is_active: false });
+      if (e1) return showErrorToast(helpers, e1);
+    }
+    const { error } = await supabase
+      .from("plans")
+      .insert({ name: name.trim(), order_index: plans.length, is_active: makeActive });
     if (error) return showErrorToast(helpers, error);
     renderPlansView(root, {}, helpers);
   });
