@@ -11,6 +11,7 @@
   --danger: #ef4444;
   --radius: 14px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
 }
 
 * { box-sizing: border-box; }
@@ -45,6 +46,7 @@ input, select, textarea {
   max-width: 560px;
   margin: 0 auto;
   padding: 16px;
+  padding-top: calc(var(--safe-top) + 20px);
 }
 
 /* ---------- Top bar ---------- */
@@ -52,7 +54,7 @@ input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 4px 16px 4px;
+  padding: 4px 4px 20px 4px;
 }
 
 .topbar .title {
@@ -171,6 +173,7 @@ input, select, textarea {
   flex-direction: column;
   justify-content: center;
   padding: 24px;
+  padding-top: calc(var(--safe-top) + 24px);
   max-width: 420px;
   margin: 0 auto;
 }
@@ -392,3 +395,183 @@ input, select, textarea {
   padding: 40px;
   color: var(--text-muted);
 }
+
+/* ============================================================
+   HOME-DASHBOARD (Widgets)
+   ============================================================ */
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 16px 4px;
+}
+
+.home-header .app-title {
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.home-header .app-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.widget {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.widget-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+/* Plan-switcher */
+.plan-switcher { cursor: pointer; }
+.plan-switcher:active { opacity: 0.85; }
+
+.plan-switcher-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.plan-switcher-name {
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-switcher-list {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.plan-switcher-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 4px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.plan-switcher-item:active { background: var(--bg-elevated); }
+.plan-switcher-item .star { color: var(--accent-light); width: 18px; flex-shrink: 0; }
+.plan-switcher-item.action { color: var(--accent-light); font-weight: 600; }
+
+/* Next-training Widget (großer CTA) */
+.next-training {
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.next-training:active { opacity: 0.9; }
+.next-training .widget-label { color: rgba(255, 255, 255, 0.75); }
+.next-training .nt-day { font-size: 21px; font-weight: 800; margin-bottom: 2px; }
+.next-training .nt-meta { font-size: 13px; color: rgba(255, 255, 255, 0.85); }
+
+.next-training .nt-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 9px 16px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Zwei-Spalten Stat-Kacheln */
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.stat-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.stat-tile .stat-icon { font-size: 20px; margin-bottom: 8px; }
+.stat-tile .stat-value { font-size: 16px; font-weight: 700; line-height: 1.25; }
+.stat-tile .stat-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+
+/* Kalender-Widget */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.calendar-nav button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+}
+
+.calendar-month-label { font-weight: 700; font-size: 14px; }
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendar-weekday {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding-bottom: 6px;
+}
+
+.calendar-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border-radius: 8px;
+  position: relative;
+  color: var(--border);
+}
+
+.calendar-cell.in-month { color: var(--text); }
+.calendar-cell.today { box-shadow: inset 0 0 0 1.5px var(--accent-light); font-weight: 700; }
+
+.calendar-cell.trained::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.widget-link-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.widget-link-row .btn { font-size: 13px; }
