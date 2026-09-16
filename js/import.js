@@ -144,7 +144,7 @@ function tryParse(text) {
 
 async function performImport(supabase, data, makeActive) {
   if (makeActive) {
-    const { error: eDeact } = await supabase.from("plans").update({ is_active: false });
+    const { error: eDeact } = await supabase.from("plans").update({ is_active: false }).eq("is_active", true);
     if (eDeact) throw eDeact;
   }
 

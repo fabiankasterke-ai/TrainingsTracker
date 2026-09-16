@@ -104,7 +104,7 @@ function drawPlans(root, plans, helpers) {
     if (!name || !name.trim()) return;
     const makeActive = plans.length === 0 || confirm("Diesen neuen Plan direkt als aktiven Plan auf der Startseite setzen?");
     if (makeActive) {
-      const { error: e1 } = await supabase.from("plans").update({ is_active: false });
+      const { error: e1 } = await supabase.from("plans").update({ is_active: false }).eq("is_active", true);
       if (e1) return showErrorToast(helpers, e1);
     }
     const { error } = await supabase

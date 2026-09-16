@@ -209,7 +209,7 @@ export async function renderHomeView(root, params, helpers) {
     document.getElementById("ps-new-plan")?.addEventListener("click", async () => {
       const name = prompt("Name des neuen Trainingsplans:", "Neuer Trainingsplan");
       if (!name || !name.trim()) return;
-      const { error: e1 } = await supabase.from("plans").update({ is_active: false });
+      const { error: e1 } = await supabase.from("plans").update({ is_active: false }).eq("is_active", true);
       if (e1) return showErrorToast(helpers, e1);
       const { error: e2 } = await supabase
         .from("plans")
