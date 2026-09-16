@@ -3,6 +3,8 @@ import { renderAuthScreen, signOut } from "./auth.js";
 import { renderPlansView, renderBlocksView, renderDaysView, renderExercisesEditView } from "./plan.js";
 import { renderLogView } from "./workout.js";
 import { renderHomeView } from "./dashboard.js";
+import { renderExerciseHistoryView } from "./history.js";
+import { renderImportView } from "./import.js";
 
 const appRoot = document.getElementById("app");
 
@@ -17,6 +19,8 @@ const registry = {
   days: (root, params) => renderDaysView(root, params, helpers),
   exercisesEdit: (root, params) => renderExercisesEditView(root, params, helpers),
   log: (root, params) => renderLogView(root, params, helpers),
+  exerciseHistory: (root, params) => renderExerciseHistoryView(root, params, helpers),
+  planImport: (root, params) => renderImportView(root, params, helpers),
 };
 
 const helpers = {

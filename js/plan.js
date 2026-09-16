@@ -1,4 +1,4 @@
-import { topBar, loadingSpinner, emptyState, escapeHtml, showErrorToast } from "./ui.js";
+import { topBar, loadingSpinner, emptyState, escapeHtml, showErrorToast, formatRest } from "./ui.js";
 import { setActivePlan } from "./data.js";
 
 const MAX_TRAINING_DAYS = 7;
@@ -45,13 +45,15 @@ function drawPlans(root, plans, helpers) {
       </div>`
         )
         .join("")
-    : emptyState("📋", "Noch kein Trainingsplan angelegt. Leg deinen ersten Plan an!");
+    : emptyState("📋", "Noch kein Trainingsplan angelegt. Leg deinen ersten Plan an oder importiere einen fertigen Plan!");
 
   root.innerHTML =
     topBar("Meine Trainingspläne", "", { showBack: true, showLogout: true }) +
     `<div id="plans-list">${listHtml}</div>
      <div class="spacer"></div>
-     <button class="btn btn-primary" id="add-plan">+ Neuer Trainingsplan</button>`;
+     <button class="btn btn-primary" id="add-plan">+ Neuer Trainingsplan</button>
+     <div class="spacer"></div>
+     <button class="btn btn-secondary" id="import-plan">⬆️ Plan importieren (JSON)</button>`;
 
   root.querySelectorAll("[data-activate]").forEach((el) =>
     el.addEventListener("click", async (e) => {
@@ -110,6 +112,10 @@ function drawPlans(root, plans, helpers) {
       .insert({ name: name.trim(), order_index: plans.length, is_active: makeActive });
     if (error) return showErrorToast(helpers, error);
     renderPlansView(root, {}, helpers);
+  });
+
+  document.getElementById("import-plan").addEventListener("click", () => {
+    helpers.push({ name: "planImport", params: {} });
   });
 }
 
@@ -367,7 +373,7 @@ function drawExercisesEdit(root, exercises, ctx, helpers, editingExercise) {
         <div class="list-item">
           <div class="grow">
             <div class="card-title">${escapeHtml(ex.name)}</div>
-            <div class="card-meta">${ex.target_sets} × ${escapeHtml(ex.target_reps)}${ex.notes ? " · " + escapeHtml(ex.notes) : ""}</div>
+            <div class="card-meta">${ex.target_sets} × ${escapeHtml(ex.target_reps)}${ex.rest_seconds ? " · Pause " + formatRest(ex.rest_seconds) : ""}${ex.notes ? " · " + escapeHtml(ex.notes) : ""}</div>
           </div>
           <button class="icon-btn" data-edit-ex="${ex.id}">✎</button>
           <button class="icon-btn" data-delete-ex="${ex.id}">🗑</button>
@@ -407,8 +413,12 @@ function drawExercisesEdit(root, exercises, ctx, helpers, editingExercise) {
         </div>
       </div>
       <div class="field">
+        <label>Pause zwischen den Sätzen (Sekunden)</label>
+        <input id="f-rest" type="number" min="0" max="600" step="5" value="${ex?.rest_seconds ?? 60}" placeholder="z. B. 60" />
+      </div>
+      <div class="field">
         <label>Notizen (optional)</label>
-        <textarea id="f-notes" placeholder="z. B. Ausführungshinweise, Pausenzeit">${escapeHtml(ex?.notes || "")}</textarea>
+        <textarea id="f-notes" placeholder="z. B. Ausführungshinweise, Dropset-Hinweis">${escapeHtml(ex?.notes || "")}</textarea>
       </div>
       <div class="btn-row">
         <button class="btn btn-secondary" id="cancel-ex">Abbrechen</button>
@@ -447,6 +457,7 @@ function drawExercisesEdit(root, exercises, ctx, helpers, editingExercise) {
     const name = document.getElementById("f-name").value.trim();
     const target_sets = parseInt(document.getElementById("f-sets").value, 10) || 1;
     const target_reps = document.getElementById("f-reps").value.trim() || "8-12";
+    const rest_seconds = document.getElementById("f-rest").value === "" ? null : parseInt(document.getElementById("f-rest").value, 10);
     const notes = document.getElementById("f-notes").value.trim();
 
     if (!name) {
@@ -457,7 +468,7 @@ function drawExercisesEdit(root, exercises, ctx, helpers, editingExercise) {
     if (ex) {
       const { error } = await supabase
         .from("exercises")
-        .update({ section_name, name, target_sets, target_reps, notes })
+        .update({ section_name, name, target_sets, target_reps, rest_seconds, notes })
         .eq("id", ex.id);
       if (error) return showErrorToast(helpers, error);
       helpers.toast("Übung aktualisiert");
@@ -468,6 +479,7 @@ function drawExercisesEdit(root, exercises, ctx, helpers, editingExercise) {
         name,
         target_sets,
         target_reps,
+        rest_seconds,
         notes,
         order_index: exercises.length,
       });
