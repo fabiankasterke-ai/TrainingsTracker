@@ -84,12 +84,18 @@ function tick() {
 function onFinished() {
   playBeep();
   vibrate();
-  if (barEl) barEl.classList.add("rt-finished");
+  if (barEl) {
+    barEl.classList.add("rt-finished");
+    const labelEl = barEl.querySelector("#rt-label");
+    if (labelEl) labelEl.textContent = "Fertig! 💪";
+  }
   if (state?.intervalId) clearInterval(state.intervalId);
   if (state) state.intervalId = null;
+  // Leiste verschwindet kurz nach Ablauf automatisch wieder (statt dauerhaft
+  // stehen zu bleiben) - reicht gerade, um Ton/Vibration + "Fertig" wahrzunehmen.
   setTimeout(() => {
     if (state && state.remaining === 0) stopTimer();
-  }, 4000);
+  }, 1500);
 }
 
 // Startet (oder ersetzt) die laufende Pause mit einer neuen Dauer in Sekunden
