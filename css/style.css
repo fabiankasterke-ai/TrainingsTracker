@@ -258,9 +258,26 @@ input, select, textarea {
 .exercise-name { font-weight: 600; font-size: 16px; margin-bottom: 2px; }
 .exercise-target { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
 
+.exercise-name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.exercise-name-row .btn-ghost {
+  white-space: nowrap;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .set-row {
   display: grid;
-  grid-template-columns: 26px 1fr 1fr;
+  grid-template-columns: 24px 1fr 1fr 34px;
   gap: 8px;
   align-items: start;
   margin-bottom: 10px;
@@ -293,12 +310,123 @@ input, select, textarea {
 
 .col-labels {
   display: grid;
-  grid-template-columns: 26px 1fr 1fr;
+  grid-template-columns: 24px 1fr 1fr 34px;
   gap: 8px;
   font-size: 10px;
   color: var(--text-muted);
   margin-bottom: 6px;
   text-transform: uppercase;
+}
+
+/* Haken-Button pro Satz: markiert den Satz als erledigt und startet den Pausen-Timer */
+.check-btn {
+  width: 34px;
+  height: 38px;
+  margin-top: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 16px;
+  font-weight: 700;
+  padding: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.check-btn.done {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  animation: check-pop 0.28s ease;
+}
+
+@keyframes check-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================
+   PAUSEN-TIMER (schwebende Leiste am unteren Bildschirmrand)
+   ============================================================ */
+.rest-timer-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 90;
+  background: linear-gradient(135deg, var(--accent), #7c3aed);
+  color: white;
+  padding: calc(12px + var(--safe-top)) 16px 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.rest-timer-bar.hidden { display: none; }
+
+.rest-timer-bar .rt-info {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.rest-timer-bar .rt-label {
+  font-size: 13px;
+  opacity: 0.85;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rest-timer-bar .rt-time {
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.rest-timer-bar .rt-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.rest-timer-bar .rt-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  color: white;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.rest-timer-bar .rt-btn-main { background: rgba(255, 255, 255, 0.32); }
+.rest-timer-bar .rt-btn-close { flex: 0 0 44px; background: rgba(0, 0, 0, 0.2); }
+
+.rest-timer-bar .rt-progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.rest-timer-bar .rt-progress-fill {
+  height: 100%;
+  background: white;
+  width: 0%;
+  transition: width 1s linear;
+}
+
+.rest-timer-bar.rt-finished { animation: rt-pulse 0.6s ease-in-out 3; }
+
+@keyframes rt-pulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.4); }
 }
 
 /* ---------- Section pill (Abschnitt innerhalb Trainingstag) ---------- */
@@ -575,3 +703,51 @@ input, select, textarea {
 
 .widget-link-row { display: flex; gap: 8px; margin-bottom: 12px; }
 .widget-link-row .btn { font-size: 13px; }
+
+/* ============================================================
+   ÜBUNGS-HISTORIE (Verlauf-Graph + Liste)
+   ============================================================ */
+.history-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 4px;
+}
+
+.chart-detail {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.chart-detail strong { color: var(--text); font-weight: 700; }
+
+.history-entry {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.history-date {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.history-sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.history-set-pill {
+  font-size: 12.5px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  border-radius: 20px;
+  color: var(--text);
+}
