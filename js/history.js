@@ -193,7 +193,7 @@ function buildLineChartSVG(points) {
     .map(
       (p, i) => `
     <circle class="chart-hit" data-i="${i}" cx="${xAt(i).toFixed(1)}" cy="${yAt(p.value).toFixed(1)}" r="14" fill="transparent" style="cursor:pointer;"/>
-    <circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.value).toFixed(1)}" r="4" fill="var(--accent-light)" stroke="var(--bg-card)" stroke-width="2" style="pointer-events:none;"/>
+    <circle cx="${xAt(i).toFixed(1)}" cy="${yAt(p.value).toFixed(1)}" r="4" fill="var(--accent-light)" stroke="var(--surface-100)" stroke-width="2" style="pointer-events:none;"/>
   `
     )
     .join("");

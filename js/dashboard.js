@@ -17,7 +17,7 @@ function todayStr() {
 // HOME / DASHBOARD
 // ============================================================================
 export async function renderHomeView(root, params, helpers) {
-  root.innerHTML = topBar("TrainingsTracker", "", { showLogout: true }) + loadingSpinner("Lädt dein Dashboard …");
+  root.innerHTML = topBar("TrainingsTracker", "", { showLogout: true, brand: true }) + loadingSpinner("Lädt dein Dashboard …");
 
   const { supabase } = helpers;
   const { data: plans, error } = await supabase.from("plans").select("*").order("order_index", { ascending: true });
@@ -91,7 +91,7 @@ export async function renderHomeView(root, params, helpers) {
     const monthLabel = `${MONTH_NAMES[displayMonth.getMonth()]} ${displayMonth.getFullYear()}`;
 
     root.innerHTML =
-      topBar("TrainingsTracker", "", { showLogout: true }) +
+      topBar("TrainingsTracker", "", { showLogout: true, brand: true }) +
       `
       <div class="widget plan-switcher">
         <div class="plan-switcher-row" id="ps-toggle-row">
@@ -256,10 +256,10 @@ export async function renderHomeView(root, params, helpers) {
 function drawEmptyOnboarding(root, helpers) {
   const { supabase } = helpers;
   root.innerHTML =
-    topBar("TrainingsTracker", "", { showLogout: true }) +
+    topBar("TrainingsTracker", "", { showLogout: true, brand: true }) +
     `
     <div class="widget" style="text-align:center;padding:36px 20px;">
-      <div style="font-size:42px;margin-bottom:10px;">🏋️</div>
+      <img src="img/ares-mark.png" alt="" style="width:64px;height:auto;margin-bottom:14px;" />
       <h3>Willkommen!</h3>
       <p class="muted" style="margin:8px 0 22px 0;">Leg deinen ersten Trainingsplan an, um loszulegen.</p>
       <button class="btn btn-primary" id="create-first-plan">+ Ersten Trainingsplan anlegen</button>

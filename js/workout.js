@@ -1,5 +1,6 @@
-import { topBar, loadingSpinner, emptyState, escapeHtml, showErrorToast, formatRest } from "./ui.js";
+import { topBar, loadingSpinner, emptyState, escapeHtml, showErrorToast, formatRest, openSheet } from "./ui.js";
 import { startRestTimer } from "./timer.js";
+import { keepAwake, getKeepAwakePref, setKeepAwakePref, wakeLockSupported } from "./wakelock.js";
 
 const DEFAULT_REST_SECONDS = 60;
 
@@ -127,15 +128,22 @@ export async function renderLogView(root, ctx, helpers) {
               </div>
             `);
           }
+          const noteHtml = ex.notes
+            ? `<button type="button" class="exercise-note" data-note-edit="${ex.id}" aria-label="Notiz bearbeiten"><span class="eyebrow">Notiz</span>${escapeHtml(ex.notes)}</button>`
+            : "";
           return `
             <div class="exercise-block">
               <div class="exercise-name-row">
-                <div>
+                <div style="min-width:0;">
                   <div class="exercise-name">${escapeHtml(ex.name)}</div>
-                  <div class="exercise-target">Ziel: ${ex.target_sets} × ${escapeHtml(ex.target_reps)} · Pause ${formatRest(restSeconds)}${ex.notes ? " · " + escapeHtml(ex.notes) : ""}</div>
+                  <div class="exercise-target">Ziel: ${ex.target_sets} × ${escapeHtml(ex.target_reps)} · Pause ${formatRest(restSeconds)}</div>
                 </div>
-                <button class="btn-ghost btn-sm" data-history="${ex.id}" data-history-name="${escapeHtml(ex.name)}">📈 Verlauf</button>
+                <div class="exercise-actions">
+                  <button class="btn-ghost btn-sm" data-history="${ex.id}" data-history-name="${escapeHtml(ex.name)}">📈 Verlauf</button>
+                  <button type="button" class="more-btn" data-more="${ex.id}" aria-label="Weitere Optionen für ${escapeHtml(ex.name)}">⋯</button>
+                </div>
               </div>
+              ${noteHtml}
               <div class="col-labels"><div></div><div>Gewicht (kg)</div><div>Wdh.</div><div></div></div>
               ${rows.join("")}
               <button class="btn btn-secondary btn-sm" data-add-set="${ex.id}">+ Satz</button>
@@ -154,6 +162,17 @@ export async function renderLogView(root, ctx, helpers) {
         <label>Datum</label>
         <input type="date" id="workout-date" value="${state.date}" />
       </div>
+      ${
+        wakeLockSupported
+          ? `<label class="awake-toggle">
+        <div>
+          <div>🔆 Display bleibt an</div>
+          <div class="sub">Handy sperrt sich beim Training nicht automatisch</div>
+        </div>
+        <span class="switch"><input type="checkbox" id="awake-toggle" ${getKeepAwakePref() ? "checked" : ""} /><span class="knob"></span></span>
+      </label>`
+          : ""
+      }
       ${groupsHtml}
       <div class="spacer"></div>
       <button class="btn btn-primary" id="save-workout">💾 Training speichern</button>
@@ -164,6 +183,29 @@ export async function renderLogView(root, ctx, helpers) {
     document.getElementById("workout-date").addEventListener("change", (e) => {
       state.date = e.target.value;
     });
+
+    keepAwake(getKeepAwakePref());
+    document.getElementById("awake-toggle")?.addEventListener("change", (e) => {
+      setKeepAwakePref(e.target.checked);
+      keepAwake(e.target.checked);
+      helpers.toast(e.target.checked ? "🔆 Display bleibt an" : "Display sperrt wieder normal");
+    });
+
+    // ⋯-Menü an jeder Übung
+    root.querySelectorAll("[data-more]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        captureInputs();
+        openExerciseMenu(exercises.find((e) => e.id === btn.dataset.more));
+      })
+    );
+
+    // Tipp auf eine bestehende Notiz -> direkt bearbeiten
+    root.querySelectorAll("[data-note-edit]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        captureInputs();
+        openNoteEditor(exercises.find((e) => e.id === btn.dataset.noteEdit));
+      })
+    );
 
     root.querySelectorAll("[data-add-set]").forEach((btn) =>
       btn.addEventListener("click", () => {
@@ -207,6 +249,97 @@ export async function renderLogView(root, ctx, helpers) {
     root.querySelectorAll(".set-row").forEach((row) => attachAutoSave(row));
 
     document.getElementById("save-workout").addEventListener("click", saveWorkout);
+  }
+
+  // --------------------------------------------------------------------------
+  // ⋯-Menü & Notizen
+  // Die Notiz hängt an der Übung selbst (Spalte exercises.notes) – sie ist
+  // also nicht an ein Datum oder einen Satz gebunden, sondern bleibt bei
+  // jedem künftigen Training dieser Übung sichtbar, bis man sie ändert.
+  // (Dasselbe Feld wie "Notizen" unter "Übungen bearbeiten".)
+  // --------------------------------------------------------------------------
+  function openExerciseMenu(ex) {
+    if (!ex) return;
+    const hasNote = !!(ex.notes && ex.notes.trim());
+    openSheet(
+      `
+      <div class="sheet-head">
+        <span class="eyebrow">Übung</span>
+        <div class="sheet-title">${escapeHtml(ex.name)}</div>
+      </div>
+      <button type="button" class="sheet-item" data-act="note"><span class="si-icon">✎</span>${hasNote ? "Notiz bearbeiten" : "Notiz hinzufügen"}</button>
+      <button type="button" class="sheet-item" data-act="history"><span class="si-icon">📈</span>Verlauf ansehen</button>
+      ${hasNote ? `<button type="button" class="sheet-item danger" data-act="delete-note"><span class="si-icon">🗑</span>Notiz löschen</button>` : ""}
+      <button type="button" class="btn btn-secondary" data-act="cancel" style="margin-top:4px;">Abbrechen</button>
+    `,
+      (sheet, close) => {
+        sheet.querySelector('[data-act="note"]').addEventListener("click", () => {
+          close();
+          openNoteEditor(ex);
+        });
+        sheet.querySelector('[data-act="history"]').addEventListener("click", () => {
+          close();
+          helpers.push({ name: "exerciseHistory", params: { exerciseId: ex.id, exerciseName: ex.name } });
+        });
+        sheet.querySelector('[data-act="delete-note"]')?.addEventListener("click", async () => {
+          if (!confirm("Notiz wirklich löschen?")) return;
+          close();
+          await saveNote(ex, "");
+        });
+        sheet.querySelector('[data-act="cancel"]').addEventListener("click", close);
+      }
+    );
+  }
+
+  function openNoteEditor(ex) {
+    if (!ex) return;
+    openSheet(
+      `
+      <div class="sheet-head">
+        <span class="eyebrow">Notiz</span>
+        <div class="sheet-title">${escapeHtml(ex.name)}</div>
+      </div>
+      <textarea id="note-text" maxlength="1000" placeholder="z. B. Sitzhöhe 4, Griff eng, letzter Satz als Dropset …">${escapeHtml(ex.notes || "")}</textarea>
+      <p class="sheet-hint">Bleibt dauerhaft an dieser Übung gespeichert und wird bei jedem Training angezeigt.</p>
+      <div class="btn-row">
+        <button type="button" class="btn btn-secondary" id="note-cancel">Abbrechen</button>
+        <button type="button" class="btn btn-primary" id="note-save">Speichern</button>
+      </div>
+    `,
+      (sheet, close) => {
+        const ta = sheet.querySelector("#note-text");
+        setTimeout(() => {
+          ta.focus();
+          ta.setSelectionRange(ta.value.length, ta.value.length);
+        }, 50);
+        sheet.querySelector("#note-cancel").addEventListener("click", close);
+        sheet.querySelector("#note-save").addEventListener("click", async () => {
+          const btn = sheet.querySelector("#note-save");
+          btn.disabled = true;
+          btn.textContent = "Speichert …";
+          const ok = await saveNote(ex, ta.value);
+          if (ok) close();
+          else {
+            btn.disabled = false;
+            btn.textContent = "Speichern";
+          }
+        });
+      }
+    );
+  }
+
+  async function saveNote(ex, text) {
+    const notes = text.trim() || null;
+    const { error } = await supabase.from("exercises").update({ notes }).eq("id", ex.id);
+    if (error) {
+      showErrorToast(helpers, error);
+      return false;
+    }
+    ex.notes = notes;
+    helpers.toast(notes ? "📝 Notiz gespeichert" : "Notiz gelöscht");
+    captureInputs();
+    draw();
+    return true;
   }
 
   function attachAutoSave(row) {

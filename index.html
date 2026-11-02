@@ -3,23 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <title>TrainingsTracker</title>
+  <title>Ares Strategy – Training</title>
   <meta name="description" content="Persönlicher Trainingsplan mit Gewicht- und Wiederholungs-Tracking" />
 
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#0b0b0d" />
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Training" />
+  <meta name="apple-mobile-web-app-title" content="Ares" />
   <link rel="icon" href="icons/icon-192.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div id="app">
-    <div class="loading-spinner">Lädt …</div>
+  <!-- Startbildschirm mit Logo – wird von js/app.js ausgeblendet, sobald die App bereit ist -->
+  <div id="splash" class="splash" aria-hidden="true">
+    <img src="img/ares-logo.png" alt="Ares Strategy" />
   </div>
+
+  <div id="app"></div>
 
   <script type="module" src="js/app.js"></script>
 </body>

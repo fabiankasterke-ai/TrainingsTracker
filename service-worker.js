@@ -6,7 +6,7 @@
 // gelisteten Dateien erhöhen (z. B. v3 -> v4). Sonst bekommen Nutzer:innen
 // mit bereits installierter App weiter die alte, zwischengespeicherte Version
 // ausgeliefert, auch wenn im Deployment längst neuer Code liegt.
-const CACHE_NAME = "trainingstracker-shell-v6";
+const CACHE_NAME = "trainingstracker-shell-v7";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -17,6 +17,7 @@ const APP_SHELL = [
   "./js/plan.js",
   "./js/workout.js",
   "./js/timer.js",
+  "./js/wakelock.js",
   "./js/import.js",
   "./js/dashboard.js",
   "./js/data.js",
@@ -25,7 +26,10 @@ const APP_SHELL = [
   "./js/app.js",
   "./manifest.json",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./icons/apple-touch-icon.png",
+  "./img/ares-logo.png",
+  "./img/ares-mark.png"
 ];
 
 self.addEventListener("install", (event) => {

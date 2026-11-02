@@ -5,6 +5,9 @@ import { renderLogView } from "./workout.js";
 import { renderHomeView } from "./dashboard.js";
 import { renderExerciseHistoryView } from "./history.js";
 import { renderImportView } from "./import.js";
+import { keepAwake } from "./wakelock.js";
+import { closeSheet } from "./ui.js";
+import "./timer.js"; // stellt einen laufenden Pausen-Timer nach App-Neustart wieder her
 
 const appRoot = document.getElementById("app");
 
@@ -53,7 +56,11 @@ function render() {
     console.error("Unbekannte View:", view.name);
     return;
   }
+  closeSheet();
+  // Display-Wachhalter nur im Trainings-Log (der setzt ihn selbst wieder)
+  if (view.name !== "log") keepAwake(false);
   fn(appRoot, view.params || {});
+  hideSplash();
   // globale Aktionen (Zurück/Abmelden) nach jedem Render neu verdrahten,
   // da innerHTML komplett ersetzt wird. Kleiner Timeout, damit die View
   // ihr eigenes innerHTML zuerst gesetzt hat (render-Funktionen sind teils async).
@@ -83,6 +90,19 @@ async function initAfterAuth() {
   currentUser = data.user;
   viewStack = [{ name: "home" }];
   render();
+}
+
+// Logo-Startbildschirm kurz zeigen, dann sanft ausblenden
+const splashShownAt = Date.now();
+function hideSplash() {
+  const el = document.getElementById("splash");
+  if (!el || el.dataset.hiding) return;
+  el.dataset.hiding = "1";
+  const wait = Math.max(0, 900 - (Date.now() - splashShownAt));
+  setTimeout(() => {
+    el.classList.add("fade");
+    setTimeout(() => el.remove(), 500);
+  }, wait);
 }
 
 function showToast(msg) {
