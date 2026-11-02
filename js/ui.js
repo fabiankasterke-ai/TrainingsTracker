@@ -8,19 +8,51 @@ export function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-export function topBar(title, subtitle, { showBack = false, showLogout = false } = {}) {
+export function topBar(title, subtitle, { showBack = false, showLogout = false, brand = false } = {}) {
+  const left = brand
+    ? `
+        <div class="brand-bar">
+          <img class="brand-mark" src="img/ares-mark.png" alt="" />
+          <div style="min-width:0;">
+            <span class="eyebrow">Ares Strategy</span>
+            <div class="title">${escapeHtml(title)}</div>
+          </div>
+        </div>`
+    : `
+        <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+          ${showBack ? `<button class="icon-btn" data-nav-back aria-label="Zurück">←</button>` : ""}
+          <div style="min-width:0;">
+            <div class="title">${escapeHtml(title)}</div>
+            ${subtitle ? `<div class="subtitle">${escapeHtml(subtitle)}</div>` : ""}
+          </div>
+        </div>`;
   return `
     <div class="topbar">
-      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-        ${showBack ? `<button class="icon-btn" data-nav-back aria-label="Zurück">←</button>` : ""}
-        <div style="min-width:0;">
-          <div class="title">${escapeHtml(title)}</div>
-          ${subtitle ? `<div class="subtitle">${escapeHtml(subtitle)}</div>` : ""}
-        </div>
-      </div>
+      ${left}
       ${showLogout ? `<button class="icon-btn" data-nav-logout aria-label="Abmelden">⎋</button>` : ""}
     </div>
   `;
+}
+
+// Bottom-Sheet (von unten einfahrendes Menü). `innerHtml` ist der Inhalt,
+// `onMount(sheetEl, close)` verdrahtet die Buttons. Tippen auf den
+// abgedunkelten Hintergrund schließt das Sheet.
+export function openSheet(innerHtml, onMount) {
+  closeSheet();
+  const backdrop = document.createElement("div");
+  backdrop.className = "sheet-backdrop";
+  backdrop.id = "sheet-backdrop";
+  backdrop.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="grabber"></div>${innerHtml}</div>`;
+  document.body.appendChild(backdrop);
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) closeSheet();
+  });
+  onMount?.(backdrop.querySelector(".sheet"), closeSheet);
+  return backdrop;
+}
+
+export function closeSheet() {
+  document.getElementById("sheet-backdrop")?.remove();
 }
 
 export function loadingSpinner(label = "Lädt …") {

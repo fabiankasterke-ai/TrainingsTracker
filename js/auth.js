@@ -5,12 +5,11 @@ export function renderAuthScreen(root, helpers, mode = "login") {
 
   root.innerHTML = `
     <div class="auth-wrap">
-      <div class="auth-logo">🏋️</div>
-      <div class="auth-title">TrainingsTracker</div>
+      <div class="auth-logo"><img src="img/ares-logo.png" alt="Ares Strategy – Strength. Strategy. Success." /></div>
       <div class="auth-subtitle">${isLogin ? "Melde dich an, um deinen Trainingsplan zu sehen" : "Erstelle einen Account für deinen eigenen Trainingsplan"}</div>
 
       ${!isConfigured ? `
-        <div class="card" style="border-color:#ef4444;margin-bottom:16px;">
+        <div class="card" style="border-color:var(--state-error);margin-bottom:16px;">
           <strong>⚠️ Noch nicht eingerichtet</strong>
           <p class="muted" style="margin-top:6px;font-size:13px;">
             Trage deine Supabase-Zugangsdaten in <code>js/config.js</code> ein
